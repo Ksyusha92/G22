@@ -1,0 +1,552 @@
+{
+	"info": {
+		"_postman_id": "ba7c7bff-dc0d-4715-9b40-9d2738448779",
+		"name": "API_G22",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "New Folder",
+			"item": []
+		},
+		{
+			"name": "API_G22",
+			"item": [
+				{
+					"name": "auth postman",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Basic cG9zdG1hbjpwYXNzd29yZA==",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "https://postman-echo.com/basic-auth",
+							"protocol": "https",
+							"host": [
+								"postman-echo",
+								"com"
+							],
+							"path": [
+								"basic-auth"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "register user",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"//переменная окружения\r",
+									"var email = pm.environment.get(\"email\")\r",
+									"\r",
+									"// переменная всего json\r",
+									"var jsonData = pm.response.json()\r",
+									"console.log(jsonData)\r",
+									"\r",
+									"//\r",
+									"var response_email = jsonData[\"email\"]\r",
+									"console.log(response_email)\r",
+									"\r",
+									"//проверка статус кода\r",
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"// проверка сравнение строки\r",
+									"pm.test(\"Body matches email\", function () {\r",
+									"    pm.expect(pm.response.text()).to.include(\"email\");\r",
+									"});\r",
+									"\r",
+									"// проверка наличие строки\r",
+									"pm.test(\"assertion email\", function () {\r",
+									"   response_email == email;\r",
+									"});\r",
+									"\r",
+									"// проверка времени запроса\r",
+									"pm.test(\"Response time is less than 200ms\", function () {\r",
+									"    pm.expect(pm.response.responseTime).to.be.below(200);\r",
+									"});\r",
+									"\r",
+									"// схема json\r",
+									"var schema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"required\": [\"type\", \"message\"],\r",
+									"    \"properties\":{\r",
+									"        \"type\": {\"type\": \"string\"},\r",
+									"        \"message\": {\"type\":\"string\"}\r",
+									"    },\r",
+									"    \r",
+									"};\r",
+									"\r",
+									"// валидация схемы \r",
+									"pm.test(\"Validate schema\", () => {\r",
+									"pm.response.to.have.jsonSchema(schema);\r",
+									"});\r",
+									"var schema = {\r",
+									"    \"items\": {\r",
+									"        \"type\": \"boolean\"\r",
+									"    },\r",
+									"};\r",
+									"\r",
+									"//request\r",
+									"var jsonData = JSON.parse(pm.request.body)\r",
+									"console.log(jsonData)\r",
+									"var name = jsonData.name\r",
+									"console.log(name)\r",
+									"\r",
+									"// отправка запроса с телом запроса \r",
+									"pm.sendRequest({\r",
+									"    url: pm.environment.get(\"url\") + \"/doregister\",\r",
+									"    method: \"POST\",\r",
+									"    header: {\r",
+									"        \"Content-Type\": \"application/json\"\r",
+									"    },\r",
+									"    body: {\r",
+									"        mode: \"raw\",\r",
+									"        raw: JSON.stringify({email: pm.environment.get(\"email\"), \r",
+									"                            name: pm.environment.get(\"name\"),\r",
+									"                            password: \"5555\"})\r",
+									"    }\r",
+									"}, function(err, res) {\r",
+									"    console.log(res.json())\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"var login_password = \"postman:password\"\r",
+									"var word_array = CryptoJS.enc.Utf8.parse(login_password)\r",
+									"var base64 = CryptoJS.enc.Base64.stringify(word_array)\r",
+									"\r",
+									"console.log(\"encrypted: \", base64)\r",
+									"\r",
+									"function getAll(key) {\r",
+									"   let result = [];\r",
+									"   key = key.toLowerCase();\r",
+									"   pm.request.headers.each((header) => {\r",
+									"       if (String(header.key).toLowerCase() === key) {\r",
+									"           result.push(header.valueOf());\r",
+									"       }\r",
+									"   });\r",
+									"   return result;\r",
+									"}\r",
+									"\r",
+									"pm.sendRequest({\r",
+									"    url: \"https://postman-echo.com/basic-auth\",\r",
+									"    method: \"GET\",\r",
+									"    header: \"Authorization: Basic \"+ base64+\"\"\r",
+									"}, function(err,res){\r",
+									"    console.log(res)\r",
+									"    console.log(res.json())\r",
+									"    //создаём пременную новую в окружении\r",
+									"    pm.environment.set(\"bool_token\", res.json()[\"authenticated\"])\r",
+									"    pm.globals.set(\"Authorization\", getAll('authorization'))\r",
+									"})\r",
+									"\r",
+									"//чтоб вывести время в переменных\r",
+									"function currentTime(){\r",
+									"pm.sendRequest('https://postman-echo.com/time/now', function (err, res) {\r",
+									"    if (err) { console.log(err); }\r",
+									"    else {\r",
+									"        var currentTime = res.stream.toString();\r",
+									"        pm.environment.set(\"currentTime\", currentTime);\r",
+									"    }\r",
+									"})\r",
+									"return currentTime};\r",
+									"console.log(currentTime())\r",
+									"\r",
+									"function getRandomNumber(minValue, maxValue) \r",
+									"{ return Math.floor(Math.random() * (maxValue - minValue +1)) + minValue; }\r",
+									"\r",
+									"var random = getRandomNumber(0, 100)\r",
+									"\r",
+									"console.log(random)\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"email\": \"{{$randomEmail}}\",\r\n    \"name\": \" {{$randomFirstName}}\",\r\n    \"password\": \"test\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{url}}/doregister",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"doregister"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "add avatar",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "email",
+									"value": "{{email}}",
+									"type": "text"
+								},
+								{
+									"key": "avatar",
+									"type": "file",
+									"src": "/C:/Users/Olesya/Pictures/car/5ced80a7-ed80-4b69-a0f7-8d50686a376a.jpg"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{url}}/addavatar",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"addavatar"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete avatar",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/deleteavatar?email={{email}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"deleteavatar"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "{{email}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/getuser?email={{email}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"getuser"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "{{email}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{url}}/deleteuser?email={{email}}",
+							"host": [
+								"{{url}}"
+							],
+							"path": [
+								"deleteuser"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "{{email}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "get_mock",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://e1abb498-07c3-4b4e-a65b-23553d79b1d9.mock.pstmn.io",
+							"protocol": "https",
+							"host": [
+								"e1abb498-07c3-4b4e-a65b-23553d79b1d9",
+								"mock",
+								"pstmn",
+								"io"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "mock_post",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"telephone\" : \"44\"\r\n}"
+								},
+								"url": {
+									"raw": "https://e1abb498-07c3-4b4e-a65b-23553d79b1d9.mock.pstmn.io/call",
+									"protocol": "https",
+									"host": [
+										"e1abb498-07c3-4b4e-a65b-23553d79b1d9",
+										"mock",
+										"pstmn",
+										"io"
+									],
+									"path": [
+										"call"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Thu, 11 Mar 2021 18:58:31 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Server",
+									"value": "nginx"
+								},
+								{
+									"key": "x-srv-trace",
+									"value": "v=1;t=0ca805154f2cee51"
+								},
+								{
+									"key": "x-srv-span",
+									"value": "v=1;s=dc694b1c24a191c2"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "X-RateLimit-Limit",
+									"value": "120"
+								},
+								{
+									"key": "X-RateLimit-Remaining",
+									"value": "119"
+								},
+								{
+									"key": "X-RateLimit-Reset",
+									"value": "1615488859"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"a4-7hO0T/XLq3TuFViTu2ZVQQdIY+A\""
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "gzip"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"User\": {\n        \"name\": \"Ksyu\"\n    }\n}"
+						},
+						{
+							"name": "get_mock",
+							"originalRequest": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "https://e1abb498-07c3-4b4e-a65b-23553d79b1d9.mock.pstmn.io",
+									"protocol": "https",
+									"host": [
+										"e1abb498-07c3-4b4e-a65b-23553d79b1d9",
+										"mock",
+										"pstmn",
+										"io"
+									]
+								}
+							},
+							"status": "OK",
+							"code": 200,
+							"_postman_previewlanguage": "json",
+							"header": [
+								{
+									"key": "Date",
+									"value": "Thu, 11 Mar 2021 18:53:19 GMT"
+								},
+								{
+									"key": "Content-Type",
+									"value": "application/json; charset=utf-8"
+								},
+								{
+									"key": "Transfer-Encoding",
+									"value": "chunked"
+								},
+								{
+									"key": "Connection",
+									"value": "keep-alive"
+								},
+								{
+									"key": "Server",
+									"value": "nginx"
+								},
+								{
+									"key": "x-srv-trace",
+									"value": "v=1;t=0ca805154f2cee51"
+								},
+								{
+									"key": "x-srv-span",
+									"value": "v=1;s=dc694b1c24a191c2"
+								},
+								{
+									"key": "Access-Control-Allow-Origin",
+									"value": "*"
+								},
+								{
+									"key": "X-RateLimit-Limit",
+									"value": "120"
+								},
+								{
+									"key": "X-RateLimit-Remaining",
+									"value": "119"
+								},
+								{
+									"key": "X-RateLimit-Reset",
+									"value": "1615488859"
+								},
+								{
+									"key": "ETag",
+									"value": "W/\"a4-7hO0T/XLq3TuFViTu2ZVQQdIY+A\""
+								},
+								{
+									"key": "Vary",
+									"value": "Accept-Encoding"
+								},
+								{
+									"key": "Content-Encoding",
+									"value": "gzip"
+								}
+							],
+							"cookie": [],
+							"body": "{\n    \"User\": {\n        \"name\": \"Ksyu\",\n        \"tel\": \"094\"\n    }\n}"
+						}
+					]
+				},
+				{
+					"name": "post_mock",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "https://e1abb498-07c3-4b4e-a65b-23553d79b1d9.mock.pstmn.io/call",
+							"protocol": "https",
+							"host": [
+								"e1abb498-07c3-4b4e-a65b-23553d79b1d9",
+								"mock",
+								"pstmn",
+								"io"
+							],
+							"path": [
+								"call"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Registration user XML",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "<soapenv:Envelope xmlns:soapenv=\"http://schemas.xmlsoap.org/soap/envelope/\" xmlns:wrap=\"http://foo.bar/wrappersoapserver\">\r\n   <soapenv:Header/>\r\n   <soapenv:Body>\r\n      <wrap:doRegister>\r\n         <email>qq26@gmail.com</email>\r\n         <name>qq555</name>\r\n         <password>1</password>\r\n      </wrap:doRegister>\r\n   </soapenv:Body>\r\n</soapenv:Envelope>",
+					"options": {
+						"raw": {
+							"language": "xml"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://users.bugred.ru/tasks/soap/doregister",
+					"protocol": "http",
+					"host": [
+						"users",
+						"bugred",
+						"ru"
+					],
+					"path": [
+						"tasks",
+						"soap",
+						"doregister"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
